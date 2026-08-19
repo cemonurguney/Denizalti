@@ -60,13 +60,13 @@ classdef sensor_model < handle
 
             a_n = uv*cos(phi)*cos(theta)...
                 -v*sin(phi)*cos(theta)*uphi...
-                -v*cos(phi)*cos(theta)*utheta;
+                -v*cos(phi)*sin(theta)*utheta;
 
             a_e = uv*cos(phi)*sin(theta)...
                 -v*sin(phi)*sin(theta)*uphi...
                 +v*cos(phi)*cos(theta)*utheta;
 
-            a_d = sin(theta)*uv + v*cos(theta)*utheta;
+            a_d = sin(phi)*uv + v*cos(phi)*uphi;
 
 
             obj.acceleration_true = [a_n;
