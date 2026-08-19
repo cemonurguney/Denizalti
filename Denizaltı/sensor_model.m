@@ -11,6 +11,10 @@ classdef sensor_model < handle
         R
         measurement
         measurement_history = [];
+        imu_noise_mean
+        imu_noise_std
+        acceleration_true
+        imu_measurement
     end
 
     methods
@@ -34,6 +38,48 @@ classdef sensor_model < handle
             z = obj.measurement;
         end
 
+        function imu_init(obj,imu_noise_mean,imu_noise_std)
+
+            obj.imu_noise_mean = imu_noise_mean;
+            obj.imu_noise_std = imu_noise_std;
+
+        end
+        function a_imu = imu_measure(obj,sub,u) 
+            %%%% burada gerçek ivme aldığımızı kabul ediyoruz ancak
+            %%%% gerçekte imu body alır, body to ned ve gravity ile fc
+            %%%% correction normalde gereklidir.
+            v = sub.state(4);
+            theta = sub.state(5);
+            phi = sub.state(6);
+
+            uv = u(1);
+            utheta =u(2);
+            uphi = u(3);
+
+            %%%%% gercek ivme%%%%%%
+
+            a_n = uv*cos(phi)*cos(theta)...
+                -v*sin(phi)*cos(theta)*uphi...
+                -v*cos(phi)*cos(theta)*utheta;
+
+            a_e = uv*cos(phi)*sin(theta)...
+                -v*sin(phi)*sin(theta)*uphi...
+                +v*cos(phi)*cos(theta)*utheta;
+
+            a_d = sin(theta)*uv + v*cos(theta)*utheta;
+
+
+            obj.acceleration_true = [a_n;
+                                     a_e;
+                                     a_d];
+
+            %%%%%%% imu  %%%%%%%
+
+            noise = obj.imu_noise_mean ...
+                + obj.imu_noise_std .* randn(3,1);
+            obj.imu_measurement = obj.acceleration_true + noise;
+            a_imu = obj.imu_measurement;
+        end
     end
 
 end

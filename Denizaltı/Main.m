@@ -2,7 +2,7 @@ clc;clear;
 
 %%%%%%%% Initials %%%%%%%%%
 
-sub = submarine_model(0,0,0,0,315*180/pi,0);
+sub = submarine_model(0,0,0,0,0,0);
 
 dt = 0.01;
 T = 1000;
@@ -24,7 +24,23 @@ input_parameter.pid_init(sub);
 
 savedat = savedata(reference);
 
-%%%%%%%% Simulation %%%%%%%%%
+%%%%%%%% Sensor %%%%%%%%%
+
+% noise_mean = [0;
+%               0;
+%               0;
+%               0;
+%               0;
+%               0];
+% 
+% noise_std = [1;
+%              1;
+%              0.5;
+%              0.2;
+%              0.02;
+%              0.02];
+% 
+% sensor = sensor_model(noise_mean,noise_std);
 
 for t = 0:dt:T-dt
 
@@ -33,9 +49,14 @@ for t = 0:dt:T-dt
 
     %%%%% PID ve kontrol girişleri %%%%%
     u = input_parameter.pid_update(sub,dt);
+    
+    %%%% gerçek ivmeyi imuya dönüştürme %%%%%%
+    a_imu = sensor.imu_measure(sub,u);
 
     %%%%% Submarine %%%%%
     sub.update(u,dt);
+    %%%%% Sensor %%%%%
+    z = sensor.measure(sub);
 
     %%%%% Save Data %%%%%
     savedat.record(sub,u,reference(:,k));
@@ -57,6 +78,23 @@ end
 
 savedat.show()
 savedat.threedshow()
+
+% figure
+% 
+% plot(savedat.time_history, ...
+%      savedat.position_n_history)
+% 
+% hold on
+% 
+% plot(savedat.time_history, ...
+%      sensor.measurement_history(1,:))
+% 
+% hold off
+% 
+% xlabel("time(s)")
+% ylabel("North(m)")
+% legend("True North","Measured North")
+% grid on
 
 %%%%%%%% Simulation Time %%%%%%%%%
 

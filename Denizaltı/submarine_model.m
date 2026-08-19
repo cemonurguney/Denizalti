@@ -31,7 +31,8 @@ classdef submarine_model < handle
             v = v + uv*dt;
             theta = theta + utheta*dt;
             phi = phi + uphi*dt;
-        
+            
+            
             obj.state = [N;E;D;v;theta;phi];
         
             obj.time = obj.time + dt;
