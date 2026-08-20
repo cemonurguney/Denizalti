@@ -26,8 +26,6 @@ classdef sensor_model < handle
             obj.noise_std = noise_std;
 
             obj.R = diag(obj.noise_std.^2);
-            obj.R_position = obj.R(1:3,1:3);
-            obj.R_imu = diag(obj.imu_noise_std^2);
 
         end
 
@@ -35,7 +33,9 @@ classdef sensor_model < handle
 
             obj.imu_noise_mean = imu_noise_mean;
             obj.imu_noise_std = imu_noise_std;
-            obj.R_imu = diag(obj.imu_noise_std^2);
+            obj.R_imu = diag(obj.imu_noise_std.^2);
+            obj.R_position = obj.R(1:3,1:3);
+
 
         end
         function a_imu = imu_measure(obj,sub,u) 
@@ -73,6 +73,9 @@ classdef sensor_model < handle
                 + obj.imu_noise_std .* randn(3,1);
             obj.imu_measurement = obj.acceleration_true + noise;
             a_imu = obj.imu_measurement;
+        end
+        function z_position = position_measure(obj,sub)
+            z_position = sub.state(1:3) + diag(obj.R_position);
         end
     end
 
