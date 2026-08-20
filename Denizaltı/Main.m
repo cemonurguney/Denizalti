@@ -41,13 +41,17 @@ noise_std = [1;
              0.02];
 
 sensor = sensor_model(noise_mean,noise_std);
+sensor.imu_init(noise_mean,noise_std);
 P = [10 0 0 0 0 0;
      0 10 0 0 0 0;
      0 0 10 0 0 0;
      0 0 0 5 0 0;
      0 0 0 0 5 0;
      0 0 0 0 0 5];
-kalman = kalman_filter(zeros(6,6),P,eye(6,6),sensor.R_imu,sensor.R_position);
+z_position = sensor.position_measure(sub); 
+x_init(1:3) = z_position;
+x_init(4:6) = 0;
+kalman = kalman_filter(x_init,P,zeros(6,6),sensor.R_imu,sensor.R_position);
 
 for t = 0:dt:T-dt
 
