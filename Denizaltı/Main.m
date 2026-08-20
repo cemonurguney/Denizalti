@@ -41,6 +41,13 @@ noise_std = [1;
              0.02];
 
 sensor = sensor_model(noise_mean,noise_std);
+P = [10 0 0 0 0 0;
+     0 10 0 0 0 0;
+     0 0 10 0 0 0;
+     0 0 0 5 0 0;
+     0 0 0 0 5 0;
+     0 0 0 0 0 5];
+kalman = kalman_filter(zeros(6,6),P,eye(6,6),sensor.R_imu,sensor.R_position);
 
 for t = 0:dt:T-dt
 
@@ -52,10 +59,17 @@ for t = 0:dt:T-dt
     
     %%%% gerçek ivmeyi imuya dönüştürme %%%%%%
     a_imu = sensor.imu_measure(sub,u);
+    %%%%%%%%% predict x_hat%%%%%%%%%%%%
+    kalman.prediction(a_imu,dt);
 
     %%%%% Submarine %%%%%
     sub.update(u,dt);
+    %%%%% pozisyon ölçümü %%%%%%
+    z_position = sensor.position_measure(sub);
+    %%%%%%%%%%correction %%%%%%%
+    kalman.correction(z_position);
     %%%%% Save Data %%%%%
+
     savedat.record(sub,u,reference(:,k));
 
     %%%%% Waypoint kontrolü %%%%%
