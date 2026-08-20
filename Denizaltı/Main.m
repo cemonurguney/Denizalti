@@ -45,7 +45,7 @@ P = [10 0 0 0 0 0;
 z_position = sensor.position_measure(sub); 
 x_init(1:3,1) = z_position;
 x_init(4:6,1) = 0;
-kalman = kalman_filter(x_init,P,eye(6,6)*0.00,sensor.R_imu,sensor.R_position);
+kalman = kalman_filter(x_init,P,sensor.R_imu,sensor.R_position);
 
 for t = 0:dt:T-dt
 
