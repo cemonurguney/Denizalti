@@ -26,21 +26,21 @@ savedat = savedata(reference);
 
 %%%%%%%% Sensor %%%%%%%%%
 
-% noise_mean = [0;
-%               0;
-%               0;
-%               0;
-%               0;
-%               0];
-% 
-% noise_std = [1;
-%              1;
-%              0.5;
-%              0.2;
-%              0.02;
-%              0.02];
-% 
-% sensor = sensor_model(noise_mean,noise_std);
+noise_mean = [0;
+              0;
+              0;
+              0;
+              0;
+              0];
+
+noise_std = [1;
+             1;
+             0.5;
+             0.2;
+             0.02;
+             0.02];
+
+sensor = sensor_model(noise_mean,noise_std);
 
 for t = 0:dt:T-dt
 
@@ -55,9 +55,6 @@ for t = 0:dt:T-dt
 
     %%%%% Submarine %%%%%
     sub.update(u,dt);
-    %%%%% Sensor %%%%%
-    z = sensor.measure(sub);
-
     %%%%% Save Data %%%%%
     savedat.record(sub,u,reference(:,k));
 

@@ -15,6 +15,8 @@ classdef sensor_model < handle
         imu_noise_std
         acceleration_true
         imu_measurement
+        R_imu
+        R_position
     end
 
     methods
@@ -24,24 +26,16 @@ classdef sensor_model < handle
             obj.noise_std = noise_std;
 
             obj.R = diag(obj.noise_std.^2);
-        
-        end
+            obj.R_position = obj.R(1:3,1:3);
+            obj.R_imu = diag(obj.imu_noise_std^2);
 
-        function z = measure(obj,sub)
-
-            noise = obj.noise_mean + ...
-                        obj.noise_std .* randn(6,1);
-
-            obj.measurement = (sub.state) + noise;
-            obj.measurement_history(:,end+1) = obj.measurement;
-            
-            z = obj.measurement;
         end
 
         function imu_init(obj,imu_noise_mean,imu_noise_std)
 
             obj.imu_noise_mean = imu_noise_mean;
             obj.imu_noise_std = imu_noise_std;
+            obj.R_imu = diag(obj.imu_noise_std^2);
 
         end
         function a_imu = imu_measure(obj,sub,u) 
