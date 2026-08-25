@@ -11,7 +11,7 @@ k = 1;
 %%%%%%%% Reference %%%%%%%%%
 
 ref = reference_motion();
-ref.edit("kare",20);
+ref.edit("kup",20);
 reference = ref.reference;
 
 
@@ -88,23 +88,7 @@ end
 savedat.show()
 savedat.threedshow()
 savedat.kalmanshow()
-
-% figure
-% 
-% plot(savedat.time_history, ...
-%      savedat.position_n_history)
-% 
-% hold on
-% 
-% plot(savedat.time_history, ...
-%      sensor.measurement_history(1,:))
-% 
-% hold off
-% 
-% xlabel("time(s)")
-% ylabel("North(m)")
-% legend("True North","Measured North")
-% grid on
+savedat.animate_with_axes_kalman(7,5)
 
 %%%%%%%% Simulation Time %%%%%%%%%
 

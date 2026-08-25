@@ -5,9 +5,7 @@ classdef sensor_model < handle
         noise_std = [1;
              1;
              0.5;
-             0.2;
-             0.02;
-             0.02];
+             0.2];
         R
         measurement
         measurement_history = [];

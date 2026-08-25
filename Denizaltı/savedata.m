@@ -291,6 +291,95 @@ classdef savedata < handle
 
         
         end
+        function animate_with_axes_kalman(obj, simSpeed, axLen)
+            if nargin<2, simSpeed = 1; end
+            if nargin<3, axLen = 5; end
+            if isempty(obj.time_history) || isempty(obj.x_hat_history), return; end
+        
+            % time and ensure row vector
+            t = obj.time_history(:)';
+            N = numel(t);
+        
+            % x_hat_history: assume size = (stateRows x samples)
+            X = obj.x_hat_history;
+            [nStates, nSamples] = size(X);
+        
+            % If samples mismatch time, interpolate along time
+            if nSamples ~= N
+                tx = linspace(t(1), t(end), nSamples);
+                X = interp1(tx, X', t, 'linear', 'extrap')';
+            end
+        
+            % positions from first 3 rows
+            xn = X(1,:);
+            xe = X(2,:);
+            xd = X(3,:);
+        
+            % velocities assumed last 3 rows
+            if nStates >= 6
+                vN = X(end-2,:);
+                vE = X(end-1,:);
+                vD = X(end,:);
+                yaw = atan2(vE, vN);
+                pitch = atan2(vD, sqrt(vN.^2 + vE.^2));
+            else
+                % fallback to stored angles (interpolated to t if needed)
+                if numel(obj.theta_history) == N
+                    yaw = obj.theta_history(:)';
+                else
+                    yaw = interp1(obj.time_history, obj.theta_history, t, 'previous', 'extrap');
+                end
+                if numel(obj.phi_history) == N
+                    pitch = obj.phi_history(:)';
+                else
+                    pitch = interp1(obj.time_history, obj.phi_history, t, 'previous', 'extrap');
+                end
+            end
+        
+            % figure setup
+            figure(10); clf;
+            plot3(obj.position_n_history, obj.position_e_history, obj.position_d_history, ':', 'Color',[0.7 0.7 0.7]); hold on;
+            hLine = plot3(xn, xe, xd, '-b');
+            hPoint = plot3(xn(1), xe(1), xd(1), 'ro', 'MarkerFaceColor','r');
+            if ~isempty(obj.reference)
+                try, plot3(obj.reference(1,:), obj.reference(2,:), obj.reference(3,:), '--k'); end
+            end
+            xlabel('North (m)'); ylabel('East (m)'); zlabel('Down (m)');
+            axis equal; grid on; view(3);
+        
+            % initial quivers
+            hN = quiver3(xn(1), xe(1), xd(1), axLen, 0, 0, 'r', 'LineWidth',2, 'MaxHeadSize',0.5);
+            hE = quiver3(xn(1), xe(1), xd(1), 0, axLen, 0, 'g', 'LineWidth',2, 'MaxHeadSize',0.5);
+            hD = quiver3(xn(1), xe(1), xd(1), 0, 0, axLen, 'b', 'LineWidth',2, 'MaxHeadSize',0.5);
+        
+            % playback loop (wall-clock sync)
+            t0 = t(1);
+            startWall = tic;
+            for k = 1:N
+                targetWall = (t(k) - t0) / simSpeed;
+                waitTime = targetWall - toc(startWall);
+                if waitTime > 0, pause(waitTime); end
+        
+                % rotation from yaw and pitch (adjust convention if needed)
+                cy = cos(yaw(k)); sy = sin(yaw(k));
+                cp = cos(pitch(k)); sp = sin(pitch(k));
+                R = [ cy*cp, -sy,  cy*sp;
+                      sy*cp,  cy,  sy*sp;
+                     -sp,     0,   cp   ];
+        
+                n_vec = (R * [1;0;0]) * axLen;
+                e_vec = (R * [0;1;0]) * axLen;
+                d_vec = (R * [0;0;1]) * axLen;
+        
+                set(hPoint, 'XData', xn(k), 'YData', xe(k), 'ZData', xd(k));
+                set(hN, 'XData', xn(k), 'YData', xe(k), 'ZData', xd(k), 'UData', n_vec(1), 'VData', n_vec(2), 'WData', n_vec(3));
+                set(hE, 'XData', xn(k), 'YData', xe(k), 'ZData', xd(k), 'UData', e_vec(1), 'VData', e_vec(2), 'WData', e_vec(3));
+                set(hD, 'XData', xn(k), 'YData', xe(k), 'ZData', xd(k), 'UData', d_vec(1), 'VData', d_vec(2), 'WData', d_vec(3));
+        
+                drawnow limitrate;
+            end
+        end
+
     end
 
 end
