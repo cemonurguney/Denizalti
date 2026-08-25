@@ -16,13 +16,21 @@ classdef savedata < handle
         reference_n_history = [];
         reference_e_history = [];
         reference_d_history = [];
+        
+        %%%%%%%% kalmansal %%%%%%%%%%%
 
         x_true_history = [];
         x_hat_history = [];
         z_position_history = [];
 
+        error_history = [];
+        P_history = [];
+        p_diag_history = [];
+
         time_history = [];
         reference = [];
+
+        
     end
 
 
@@ -89,10 +97,42 @@ classdef savedata < handle
             %%%%%%%%%%%%% Position Measurement %%%%%%%%%%%%
             
             obj.z_position_history(:,end+1) = z_position;
+
+            %%%%%%%%%%%%% P and error %%%%%%%%%%%%%%%%%%%%%%
+            obj.error_history(:,end+1) = x_true - kalman.x_hat;
+            obj.p_diag_history(:,end+1) = diag(kalman.P);
+
             
 
 
         end
+        function P_kiyas(obj)
+            sigma = sqrt(obj.p_diag_history);
+            state_names = ["N","E","D","vN","vE","vD"];
+
+            figure(6)
+
+            for i= 1:6
+                subplot(2,3,i)
+
+                plot(obj.time_history,obj.error_history(i,:))
+                hold on
+                plot(obj.time_history,3*sigma(i,:),"--")
+                plot(obj.time_history,-3*sigma(i,:),"--")
+                yline(0)
+                hold off
+        
+                xlabel("time(s)")
+                ylabel("error")
+                title(state_names(i))
+                legend("Error","+3\sigma","-3\sigma")
+                grid on
+            end
+            figure(7)
+            plot(obj.time_history,obj.p_diag_history)
+        end
+
+                    
 
 
         function show(obj)
@@ -287,6 +327,8 @@ classdef savedata < handle
             legend("x_hat","X_true")
             grid on
             axis equal
+
+
             
 
         

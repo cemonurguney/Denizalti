@@ -30,9 +30,9 @@ noise_mean = [0;
               0;
               0];
 
-noise_std = [1;
-             1;
-             0.5];
+noise_std = [0.03;
+             0.03;
+             0.05];
 
 sensor = sensor_model(noise_mean,noise_std);
 sensor.imu_init(noise_mean,noise_std);
@@ -88,7 +88,8 @@ end
 savedat.show()
 savedat.threedshow()
 savedat.kalmanshow()
-savedat.animate_with_axes_kalman(7,5)
+savedat.P_kiyas()
+%savedat.animate_with_axes_kalman(7,5)
 
 %%%%%%%% Simulation Time %%%%%%%%%
 

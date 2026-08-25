@@ -6,8 +6,6 @@ classdef sensor_model < handle
              1;
              0.5;
              0.2];
-        R
-        measurement
         measurement_history = [];
         imu_noise_mean
         imu_noise_std
@@ -22,9 +20,6 @@ classdef sensor_model < handle
 
             obj.noise_mean = noise_mean;
             obj.noise_std = noise_std;
-
-            obj.R = diag(obj.noise_std.^2);
-
         end
 
         function imu_init(obj,imu_noise_mean,imu_noise_std)
@@ -32,7 +27,7 @@ classdef sensor_model < handle
             obj.imu_noise_mean = imu_noise_mean;
             obj.imu_noise_std = imu_noise_std;
             obj.R_imu = diag(obj.imu_noise_std.^2);
-            obj.R_position = obj.R(1:3,1:3);
+            obj.R_position = diag([0.5;0.5;0.2]);
 
 
         end

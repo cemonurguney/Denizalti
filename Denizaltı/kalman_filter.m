@@ -5,7 +5,7 @@ classdef kalman_filter < handle
         Q
         R_imu
         R_position
-        std_dist = 0.05;
+        std_dist = 0.02;
     end
     methods
         function obj = kalman_filter(x_init,P_init,R_imu,R_position)
