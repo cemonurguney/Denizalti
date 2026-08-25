@@ -36,12 +36,12 @@ noise_std = [0.03;
 
 sensor = sensor_model(noise_mean,noise_std);
 sensor.imu_init(noise_mean,noise_std);
-P = [10 0 0 0 0 0;
-     0 10 0 0 0 0;
-     0 0 10 0 0 0;
-     0 0 0 5 0 0;
-     0 0 0 0 5 0;
-     0 0 0 0 0 5];
+P = [0.25 0 0 0 0 0;
+     0 0.25 0 0 0 0;
+     0 0 0.04 0 0 0;
+     0 0 0 0.25 0 0;
+     0 0 0 0 0.25 0;
+     0 0 0 0 0 0.25];
 z_position = sensor.position_measure(sub); 
 x_init(1:3,1) = z_position;
 x_init(4:6,1) = 0;

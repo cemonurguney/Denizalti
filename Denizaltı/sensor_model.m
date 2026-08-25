@@ -27,7 +27,7 @@ classdef sensor_model < handle
             obj.imu_noise_mean = imu_noise_mean;
             obj.imu_noise_std = imu_noise_std;
             obj.R_imu = diag(obj.imu_noise_std.^2);
-            obj.R_position = diag([0.5;0.5;0.2]);
+            obj.R_position = diag([0.5^2;0.5^2;0.2^2]);
 
 
         end
