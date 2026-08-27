@@ -384,7 +384,7 @@ classdef savedata < handle
             hLine = plot3(xn, xe, xd, '-b');
             hPoint = plot3(xn(1), xe(1), xd(1), 'ro', 'MarkerFaceColor','r');
             if ~isempty(obj.reference)
-                try, plot3(obj.reference(1,:), obj.reference(2,:), obj.reference(3,:), '--k'); end
+                try plot3(obj.reference(1,:), obj.reference(2,:), obj.reference(3,:), '--k'); end
             end
             xlabel('North (m)'); ylabel('East (m)'); zlabel('Down (m)');
             axis equal; grid on; view(3);

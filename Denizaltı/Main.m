@@ -57,7 +57,7 @@ for t = 0:dt:T-dt
     
     %%%% gerçek ivmeyi imuya dönüştürme %%%%%%
     a_imu = sensor.imu_measure(sub,u);
-    %%%%%%%%% predict x_hat%%%%%%%%%%%%
+    %%%%%%%%% predict x_hat%%%%%%%%%%%% 100 hz imu
     kalman.prediction(a_imu,dt);
 
     %%%%% Submarine %%%%%
@@ -65,7 +65,9 @@ for t = 0:dt:T-dt
     %%%%% pozisyon ölçümü %%%%%%
     z_position = sensor.position_measure(sub);
     %%%%%%%%%%correction %%%%%%%
-    kalman.correction(z_position);
+    if mod(t,1) == 0 %%%% 1hz gps update
+        kalman.correction(z_position);
+    end
     %%%%% Save Data %%%%%
 
     savedat.record(sub,u,reference(:,k),kalman,z_position);

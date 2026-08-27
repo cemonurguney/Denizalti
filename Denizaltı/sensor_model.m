@@ -2,10 +2,7 @@ classdef sensor_model < handle
 
     properties
         noise_mean
-        noise_std = [1;
-             1;
-             0.5;
-             0.2];
+        noise_std
         measurement_history = [];
         imu_noise_mean
         imu_noise_std
