@@ -41,13 +41,17 @@ classdef kalman_filter < handle
             H = [1 0 0 0 0 0 ;
                  0 1 0 0 0 0 ;
                  0 0 1 0 0 0 ];
+            if  isnan(z) ~= true
+                
 
-            y = z - H*obj.x_hat;
-            S = H*obj.P*H' + obj.R_position;
-            K = (obj.P*H')/S;
-            obj.x_hat = obj.x_hat + K*y;
-            obj.P = (eye(6,6) - K*H)*obj.P;
+                y = z - H*obj.x_hat;
+                S = H*obj.P*H' + obj.R_position;
+                K = (obj.P*H')/S;
+                obj.x_hat = obj.x_hat + K*y;
+                obj.P = (eye(6,6) - K*H)*obj.P;
+            end
         end
 
+            
     end
 end

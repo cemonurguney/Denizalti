@@ -10,6 +10,7 @@ classdef sensor_model < handle
         imu_measurement
         R_imu
         R_position
+        t = 0;
     end
 
     methods
@@ -64,8 +65,13 @@ classdef sensor_model < handle
             obj.imu_measurement = obj.acceleration_true + noise;
             a_imu = obj.imu_measurement;
         end
-        function z_position = position_measure(obj,sub)
-            z_position = sub.state(1:3) + sqrt(diag(obj.R_position)).*randn(3,1);
+        function z_position = position_measure(obj,sub,dt)
+            obj.t = obj.t + dt*100;
+            if mod(obj.t,100) == 0
+                z_position = sub.state(1:3) + sqrt(diag(obj.R_position)).*randn(3,1);
+            else
+                z_position = NaN(3,1);
+            end
         end
     end
 

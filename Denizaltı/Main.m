@@ -3,7 +3,6 @@ clc;clear;
 %%%%%%%% Initials %%%%%%%%%
 
 sub = submarine_model(0,0,0,0,0,0);
-
 dt = 0.01;
 T = 1000;
 k = 1;
@@ -42,7 +41,7 @@ P = [0.25 0 0 0 0 0;
      0 0 0 0.25 0 0;
      0 0 0 0 0.25 0;
      0 0 0 0 0 0.25];
-z_position = sensor.position_measure(sub); 
+z_position = sensor.position_measure(sub,100); 
 x_init(1:3,1) = z_position;
 x_init(4:6,1) = 0;
 kalman = kalman_filter(x_init,P,sensor.R_imu,sensor.R_position);
@@ -63,11 +62,10 @@ for t = 0:dt:T-dt
     %%%%% Submarine %%%%%
     sub.update(u,dt);
     %%%%% pozisyon ölçümü %%%%%%
-    z_position = sensor.position_measure(sub);
+    z_position = sensor.position_measure(sub,dt);
     %%%%%%%%%%correction %%%%%%%
-    if mod(t,1) == 0 %%%% 1hz gps update
-        kalman.correction(z_position);
-    end
+    %  %%%% 1hz gps update
+    kalman.correction(z_position);
     %%%%% Save Data %%%%%
 
     savedat.record(sub,u,reference(:,k),kalman,z_position);
