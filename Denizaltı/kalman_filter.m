@@ -71,7 +71,7 @@ classdef kalman_filter < handle
             
                 
                 y = z_velocity - H*obj.x_hat;
-                S = H*obj.P*H' + obj.R_position;
+                S = H*obj.P*H' + obj.R_velocity;
                 K = (obj.P*H')/S;
                 obj.x_hat = obj.x_hat + K*y;
                 obj.P = (eye(6,6) - K*H)*obj.P;

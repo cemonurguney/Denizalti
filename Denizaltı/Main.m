@@ -62,7 +62,7 @@ for t = 0:dt:T-dt
     %%%%% Submarine %%%%%
     sub.update(u,dt);
     %%%%% pozisyon ölçümü %%%%%%
-    z_position = sensor.position_measure(sub,dt,0.3);
+    %z_position = sensor.position_measure(sub,dt,0.5);
     z_velocity = sensor.velocity_measure(sub,dt,1);
     %%%%%%%%%%correction %%%%%%%
     %  %%%% 1hz gps update
