@@ -5,7 +5,7 @@ classdef kalman_filter < handle
         Q
         R_imu
         R_position
-        std_dist = 0.02;
+        std_dist = 0.1;
         Q_c
         Q_d
     end
