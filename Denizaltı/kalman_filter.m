@@ -6,6 +6,8 @@ classdef kalman_filter < handle
         R_imu
         R_position
         std_dist = 0.02;
+        Q_c
+        Q_d
     end
     methods
         function obj = kalman_filter(x_init,P_init,R_imu,R_position)
@@ -16,25 +18,34 @@ classdef kalman_filter < handle
         end
 
         function prediction(obj,a_imu,dt)
-    
+
             F = [1 0 0 dt 0 0;
                  0 1 0 0 dt 0;
                  0 0 1 0 0 dt;
                  0 0 0 1 0 0;
                  0 0 0 0 1 0;
                  0 0 0 0 0 1];
-    
+        
             B = [0.5*dt^2 0 0;
                  0 0.5*dt^2 0;
                  0 0 0.5*dt^2;
                  dt 0 0;
                  0 dt 0;
                  0 0 dt];
-            R_dist = obj.std_dist^2 * eye(3);            
-            obj.Q = B*R_dist*B';
+        
+            q = obj.std_dist^2;
+        
+            obj.Q_c = q * eye(3);
+        
+            obj.Q_d = [(dt^3/3)*obj.Q_c   (dt^2/2)*obj.Q_c;
+                       (dt^2/2)*obj.Q_c   dt*obj.Q_c];
+        
             obj.x_hat = F*obj.x_hat + B*a_imu;
-            obj.P = F*obj.P*F' +B*obj.R_imu*B'+obj.Q;
-
+        
+            obj.P = F*obj.P*F' ...
+                  + B*obj.R_imu*B' ...
+                  + obj.Q_d;
+        
         end
 
         function correction (obj,z)

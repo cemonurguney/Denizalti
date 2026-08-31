@@ -67,7 +67,7 @@ classdef sensor_model < handle
         end
         function z_position = position_measure(obj,sub,dt,Hz)
             obj.t = obj.t + 1;
-            if mod(obj.t,(Hz/dt)) == 0
+            if mod(obj.t,1/(Hz*dt)) == 0 
                 z_position = sub.state(1:3) + sqrt(diag(obj.R_position)).*randn(3,1);
             else
                 z_position = NaN(3,1);
