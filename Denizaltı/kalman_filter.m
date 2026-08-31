@@ -35,7 +35,7 @@ classdef kalman_filter < handle
         
             q = obj.std_dist^2;
         
-            obj.Q_c = q * eye(3);
+            obj.Q_c = q*eye(3);
         
             obj.Q_d = [(dt^3/3)*obj.Q_c   (dt^2/2)*obj.Q_c;
                        (dt^2/2)*obj.Q_c   dt*obj.Q_c];

@@ -89,6 +89,7 @@ savedat.show()
 savedat.threedshow()
 savedat.kalmanshow()
 savedat.P_kiyas()
+savedat.metrics()
 %savedat.animate_with_axes_kalman(7,5)
 
 %%%%%%%% Simulation Time %%%%%%%%%

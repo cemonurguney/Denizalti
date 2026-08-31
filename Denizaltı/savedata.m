@@ -421,6 +421,54 @@ classdef savedata < handle
                 drawnow limitrate;
             end
         end
+        function metrics(obj)
+
+            %%%%%%%%%%%%% Kalman RMSE %%%%%%%%%%%%%
+        
+            kf_rmse = sqrt(mean(obj.error_history.^2,2));
+        
+        
+            %%%%%%%%%%%%% 3 Sigma Coverage %%%%%%%%%%%%%
+        
+            sigma = sqrt(obj.p_diag_history);
+        
+            inside = abs(obj.error_history) <= 3*sigma;
+        
+            coverage = mean(inside,2)*100;
+        
+        
+            %%%%%%%%%%%%% GPS RMSE %%%%%%%%%%%%%
+        
+            gps_rmse = nan(3,1);
+        
+            for i=1:3
+        
+                valid = ~isnan(obj.z_position_history(i,:));
+        
+                gps_error = obj.x_true_history(i,valid) ...
+                          - obj.z_position_history(i,valid);
+        
+                gps_rmse(i) = sqrt(mean(gps_error.^2));
+        
+            end
+        
+        
+            %%%%%%%%%%%%% Results %%%%%%%%%%%%%
+        
+            state = ["N";"E";"D";"vN";"vE";"vD"];
+        
+            gps_result = [gps_rmse;
+                          NaN;
+                          NaN;
+                          NaN];
+        
+            result = table(state,kf_rmse,gps_result,coverage, ...
+                'VariableNames', ...
+                {'State','KF_RMSE','GPS_RMSE','Coverage_3Sigma'});
+        
+            disp(result)
+        
+        end
 
     end
 
