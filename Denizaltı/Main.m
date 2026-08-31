@@ -44,7 +44,7 @@ P = [0.25 0 0 0 0 0;
 z_position = sub.state(1:3) + sqrt(diag(sensor.R_position)).*randn(3,1);
 x_init(1:3,1) = z_position;
 x_init(4:6,1) = 0;
-kalman = kalman_filter(x_init,P,sensor.R_imu,sensor.R_position);
+kalman = kalman_filter(x_init,P,sensor.R_imu,sensor.R_position,sensor.R_velocity);
 
 for t = 0:dt:T-dt
 
@@ -62,10 +62,11 @@ for t = 0:dt:T-dt
     %%%%% Submarine %%%%%
     sub.update(u,dt);
     %%%%% pozisyon ölçümü %%%%%%
-    z_position = sensor.position_measure(sub,dt,0.1);
+    z_position = sensor.position_measure(sub,dt,0.3);
+    z_velocity = sensor.velocity_measure(sub,dt,1);
     %%%%%%%%%%correction %%%%%%%
     %  %%%% 1hz gps update
-    kalman.correction(z_position);
+    kalman.correction(z_position,z_velocity);
     %%%%% Save Data %%%%%
 
     savedat.record(sub,u,reference(:,k),kalman,z_position);

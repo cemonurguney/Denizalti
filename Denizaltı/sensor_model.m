@@ -10,6 +10,7 @@ classdef sensor_model < handle
         imu_measurement
         R_imu
         R_position
+        R_velocity
         t = 0;
     end
 
@@ -26,6 +27,9 @@ classdef sensor_model < handle
             obj.imu_noise_std = imu_noise_std;
             obj.R_imu = diag(obj.imu_noise_std.^2);
             obj.R_position = diag([0.5^2;0.5^2;0.2^2]);
+            obj.R_velocity = diag([0.05^2;0.05^2;0.02^2]);
+
+            
 
 
         end
@@ -71,6 +75,20 @@ classdef sensor_model < handle
                 z_position = sub.state(1:3) + sqrt(diag(obj.R_position)).*randn(3,1);
             else
                 z_position = NaN(3,1);
+            end
+        end
+        function z_velocity = velocity_measure(obj,sub,dt,Hz)
+            obj.t = obj.t + 1;
+            v = sub.state(4);
+            theta = sub.state(5);
+            phi = sub.state(6);
+            if mod(obj.t,1/(Hz*dt)) == 0 
+                z_velocity = [v*cos(phi)*cos(theta);
+                            v*cos(phi)*sin(theta);
+                            v*sin(phi)];
+                z_velocity = z_velocity + sqrt(diag(obj.R_position)).*randn(3,1);
+            else
+                z_velocity = NaN(3,1);
             end
         end
     end
