@@ -22,6 +22,7 @@ classdef savedata < handle
         x_true_history = [];
         x_hat_history = [];
         z_position_history = [];
+        z_velocity_history = [];
 
         error_history = [];
         P_history = [];
@@ -41,7 +42,7 @@ classdef savedata < handle
         end
 
 
-        function record(obj,sub,u,target,kalman,z_position)
+        function record(obj,sub,u,target,kalman,z_position,z_velocity)
             
             obj.time_history(end+1) = sub.time;
 
@@ -97,6 +98,7 @@ classdef savedata < handle
             %%%%%%%%%%%%% Position Measurement %%%%%%%%%%%%
             
             obj.z_position_history(:,end+1) = z_position;
+            obj.z_velocity_history(:,end+1) = z_velocity;
 
             %%%%%%%%%%%%% P and error %%%%%%%%%%%%%%%%%%%%%%
             obj.error_history(:,end+1) = x_true - kalman.x_hat;
@@ -130,6 +132,7 @@ classdef savedata < handle
             end
             figure(7)
             plot(obj.time_history,obj.p_diag_history)
+            legend("N","E","D","vN","vE","vD")
         end
 
                     
@@ -282,6 +285,7 @@ classdef savedata < handle
             subplot(2,3,4)
             plot(obj.time_history,obj.x_true_history(4,:))
             hold on
+            plot(obj.time_history,obj.z_velocity_history(1,:))
             plot(obj.time_history,obj.x_hat_history(4,:))
             hold off
             xlabel("time(s)")
@@ -292,6 +296,7 @@ classdef savedata < handle
             subplot(2,3,5)
             plot(obj.time_history,obj.x_true_history(5,:))
             hold on
+            plot(obj.time_history,obj.z_velocity_history(2,:))
             plot(obj.time_history,obj.x_hat_history(5,:))
             hold off
             xlabel("time(s)")
@@ -302,6 +307,7 @@ classdef savedata < handle
             subplot(2,3,6)
             plot(obj.time_history,obj.x_true_history(6,:))
             hold on
+            plot(obj.time_history,obj.z_velocity_history(3,:))
             plot(obj.time_history,obj.x_hat_history(6,:))
             hold off
             xlabel("time(s)")
@@ -451,6 +457,18 @@ classdef savedata < handle
                 gps_rmse(i) = sqrt(mean(gps_error.^2));
         
             end
+            dvl_rmse = nan(3,1);
+        
+            for i=1:3
+        
+                valid = ~isnan(obj.z_velocity_history(i,:));
+        
+                dvl_error = obj.x_true_history(i+3,valid) ...
+                          - obj.z_velocity_history(i,valid);
+        
+                dvl_rmse(i) = sqrt(mean(dvl_error.^2));
+        
+            end
         
         
             %%%%%%%%%%%%% Results %%%%%%%%%%%%%
@@ -461,10 +479,14 @@ classdef savedata < handle
                           NaN;
                           NaN;
                           NaN];
+            dvl_result = [NaN;
+                          NaN;
+                          NaN;
+                          dvl_rmse];
         
-            result = table(state,kf_rmse,gps_result,coverage, ...
+            result = table(state,kf_rmse,gps_result,dvl_result,coverage, ...
                 'VariableNames', ...
-                {'State','KF_RMSE','GPS_RMSE','Coverage_3Sigma'});
+                {'State','KF_RMSE','GPS_RMSE','DVL_RMSE','Coverage_3Sigma'});
         
             disp(result)
         

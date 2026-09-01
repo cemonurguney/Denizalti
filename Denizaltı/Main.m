@@ -1,4 +1,4 @@
-clc;clear;
+    clc;clear;
 
 %%%%%%%% Initials %%%%%%%%%
 
@@ -63,13 +63,14 @@ for t = 0:dt:T-dt
     sub.update(u,dt);
     %%%%% pozisyon ölçümü %%%%%%
     %z_position = sensor.position_measure(sub,dt,0.5);
-    z_velocity = sensor.velocity_measure(sub,dt,1);
+    z_position = NaN(3,1);
+    z_velocity = sensor.velocity_measure(sub,dt,0.1);
     %%%%%%%%%%correction %%%%%%%
     %  %%%% 1hz gps update
     kalman.correction(z_position,z_velocity);
     %%%%% Save Data %%%%%
 
-    savedat.record(sub,u,reference(:,k),kalman,z_position);
+    savedat.record(sub,u,reference(:,k),kalman,z_position,z_velocity);
 
     %%%%% Waypoint kontrolü %%%%%
     if norm(input_parameter.position_error) < 0.5
