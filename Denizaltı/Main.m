@@ -45,7 +45,8 @@ z_position = sub.state(1:3) + sqrt(diag(sensor.R_position)).*randn(3,1);
 x_init(1:3,1) = z_position;
 x_init(4:6,1) = 0;
 kalman = kalman_filter(x_init,P,sensor.R_imu,sensor.R_position,sensor.R_velocity);
-
+ls = least_square(x_init);
+ls.add_position(z_position);
 for t = 0:dt:T-dt
 
     %%%%% Pozisyon hatası ve referansların güncellenmesi %%%%%
@@ -58,19 +59,29 @@ for t = 0:dt:T-dt
     a_imu = sensor.imu_measure(sub,u);
     %%%%%%%%% predict x_hat%%%%%%%%%%%% 100 hz imu
     kalman.prediction(a_imu,dt);
-
+    %%%%%%%%%%% ls prediction %%%%
+    ls.prediction(a_imu,dt);
+    ls.add_imu(a_imu);
     %%%%% Submarine %%%%%
     sub.update(u,dt);
     %%%%% pozisyon ölçümü %%%%%%
-    %z_position = sensor.position_measure(sub,dt,0.5);
-    z_position = NaN(3,1);
-    z_velocity = sensor.velocity_measure(sub,dt,0.1);
+    z_position = sensor.position_measure(sub,dt,0.1);
+    %z_position = NaN(3,1);
+    z_velocity = sensor.velocity_measure(sub,dt,0.5);
     %%%%%%%%%%correction %%%%%%%
-    %  %%%% 1hz gps update
     kalman.correction(z_position,z_velocity);
+    ls.add_position(z_position);
+    ls.add_velocity(z_velocity);
+    %%%%%%%%% gps ve dvl geldiğinde çözsün %%%%%%%
+    position_valid = ~any(isnan(z_position));
+    velocity_valid = ~any(isnan(z_velocity));
+    
+    if position_valid || velocity_valid
+        ls.solve();
+    end
     %%%%% Save Data %%%%%
 
-    savedat.record(sub,u,reference(:,k),kalman,z_position,z_velocity);
+    savedat.record(sub,u,reference(:,k),kalman,z_position,z_velocity,ls);
 
     %%%%% Waypoint kontrolü %%%%%
     if norm(input_parameter.position_error) < 0.5

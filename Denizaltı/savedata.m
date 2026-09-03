@@ -21,10 +21,11 @@ classdef savedata < handle
 
         x_true_history = [];
         x_hat_history = [];
+        x_ls_history = [];
         z_position_history = [];
         z_velocity_history = [];
-
-        error_history = [];
+        error_ls = []
+        error_history_kalman = [];
         P_history = [];
         p_diag_history = [];
 
@@ -42,7 +43,7 @@ classdef savedata < handle
         end
 
 
-        function record(obj,sub,u,target,kalman,z_position,z_velocity)
+        function record(obj,sub,u,target,kalman,z_position,z_velocity,ls)
             
             obj.time_history(end+1) = sub.time;
 
@@ -101,9 +102,11 @@ classdef savedata < handle
             obj.z_velocity_history(:,end+1) = z_velocity;
 
             %%%%%%%%%%%%% P and error %%%%%%%%%%%%%%%%%%%%%%
-            obj.error_history(:,end+1) = x_true - kalman.x_hat;
+            obj.error_history_kalman(:,end+1) = x_true - kalman.x_hat;
             obj.p_diag_history(:,end+1) = diag(kalman.P);
-
+            %%%%%%%%%%%%% ls history %%%%%%%%%%%%%%%%%%%%%%%
+            obj.x_ls_history(:,end+1) = ls.x_hat;
+            obj.error_ls = obj.x_ls_history - obj.x_true_history;
             
 
 
@@ -117,7 +120,7 @@ classdef savedata < handle
             for i= 1:6
                 subplot(2,3,i)
 
-                plot(obj.time_history,obj.error_history(i,:))
+                plot(obj.time_history,obj.error_history_kalman(i,:))
                 hold on
                 plot(obj.time_history,3*sigma(i,:),"--")
                 plot(obj.time_history,-3*sigma(i,:),"--")
@@ -132,6 +135,7 @@ classdef savedata < handle
             end
             figure(7)
             plot(obj.time_history,obj.p_diag_history)
+            title ("P diagonal")
             legend("N","E","D","vN","vE","vD")
         end
 
@@ -189,6 +193,7 @@ classdef savedata < handle
             plot(obj.time_history, mod(obj.phi_history*180/pi, 360));
             xlabel("time(s)")
             ylabel("phi(rad)")
+            title("PID Control")
 
 
             %%%%%%%%%%%%% input %%%%%%%%%%%%%%%%%%%%%
@@ -209,6 +214,7 @@ classdef savedata < handle
 
             subplot(1,3,3)
             plot(obj.time_history, mod(obj.phi_history*180/pi, 360));
+            title("PID Control")
             xlabel("time(s)")
             ylabel("u phi(rad/s)")
 
@@ -310,10 +316,12 @@ classdef savedata < handle
             plot(obj.time_history,obj.z_velocity_history(3,:))
             plot(obj.time_history,obj.x_hat_history(6,:))
             hold off
+            title("Kalman")
             xlabel("time(s)")
             ylabel("vD(m/s)")
             legend("True","Estimated")
             grid on
+
 
             figure(5)
             plot3(obj.x_hat_history(1,:), ...
@@ -427,18 +435,19 @@ classdef savedata < handle
                 drawnow limitrate;
             end
         end
+
         function metrics(obj)
 
             %%%%%%%%%%%%% Kalman RMSE %%%%%%%%%%%%%
         
-            kf_rmse = sqrt(mean(obj.error_history.^2,2));
+            kf_rmse = sqrt(mean(obj.error_history_kalman.^2,2));
         
         
             %%%%%%%%%%%%% 3 Sigma Coverage %%%%%%%%%%%%%
         
             sigma = sqrt(obj.p_diag_history);
         
-            inside = abs(obj.error_history) <= 3*sigma;
+            inside = abs(obj.error_history_kalman) <= 3*sigma;
         
             coverage = mean(inside,2)*100;
         
@@ -469,7 +478,20 @@ classdef savedata < handle
                 dvl_rmse(i) = sqrt(mean(dvl_error.^2));
         
             end
-        
+            %%%%%%%%%%%%% KF RMSE @ DVL times %%%%%%%%%%%%%
+
+            valid_dvl = ~any(isnan(obj.z_velocity_history),1);
+            
+            kf_dvl_error = obj.x_true_history(4:6,valid_dvl) ...
+                         - obj.x_hat_history(4:6,valid_dvl);
+            
+            kf_rmse_dvl = sqrt(mean(kf_dvl_error.^2,2));
+            kf_at_dvl_result = [NaN;
+                    NaN;
+                    NaN;
+                    kf_rmse_dvl];
+            %%%%%%%%%%%%%% LS RMSE %%%%%%%%%%%%%%%%%%%%%%%%
+            ls_rmse = sqrt(mean(obj.error_ls.^2,2));
         
             %%%%%%%%%%%%% Results %%%%%%%%%%%%%
         
@@ -484,9 +506,15 @@ classdef savedata < handle
                           NaN;
                           dvl_rmse];
         
-            result = table(state,kf_rmse,gps_result,dvl_result,coverage, ...
-                'VariableNames', ...
-                {'State','KF_RMSE','GPS_RMSE','DVL_RMSE','Coverage_3Sigma'});
+            result = table(state,...
+                        kf_rmse, ...
+                        ls_rmse,...
+                        gps_result,...
+                        dvl_result,...
+                        kf_at_dvl_result,...
+                        coverage, ...
+                        'VariableNames', ...
+                {'State','KF_RMSE','LS_RMSE','GPS_RMSE','DVL_RMSE','KF_RMSE_at_DVL','Coverage_3Sigma'});
         
             disp(result)
         
