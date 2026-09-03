@@ -340,13 +340,21 @@ classdef savedata < handle
             title("Submarine Kalman vs True Trajectory")
             legend("x_hat","X_true")
             grid on
-            axis equal
-
-
-            
-
-        
+            axis equal 
         end
+        function ls_show(obj)
+            figure(8)
+
+            plot3(obj.x_ls_history(1,:), ...
+                  obj.x_ls_history(2,:), ...
+                  obj.x_ls_history(3,:))
+            hold on 
+            plot3(obj.x_true_history(1,:), ...
+                  obj.x_true_history(2,:), ...
+                  obj.x_true_history(3,:),"--")
+        end
+
+
         function animate_with_axes_kalman(obj, simSpeed, axLen)
             if nargin<2, simSpeed = 1; end
             if nargin<3, axLen = 5; end
@@ -436,7 +444,7 @@ classdef savedata < handle
             end
         end
 
-        function metrics(obj)
+        function kf_result = metrics_kalman(obj)
 
             %%%%%%%%%%%%% Kalman RMSE %%%%%%%%%%%%%
         
@@ -490,8 +498,6 @@ classdef savedata < handle
                     NaN;
                     NaN;
                     kf_rmse_dvl];
-            %%%%%%%%%%%%%% LS RMSE %%%%%%%%%%%%%%%%%%%%%%%%
-            ls_rmse = sqrt(mean(obj.error_ls.^2,2));
         
             %%%%%%%%%%%%% Results %%%%%%%%%%%%%
         
@@ -506,19 +512,30 @@ classdef savedata < handle
                           NaN;
                           dvl_rmse];
         
-            result = table(state,...
+            kf_result = table(state,...
                         kf_rmse, ...
-                        ls_rmse,...
                         gps_result,...
                         dvl_result,...
                         kf_at_dvl_result,...
                         coverage, ...
                         'VariableNames', ...
-                {'State','KF_RMSE','LS_RMSE','GPS_RMSE','DVL_RMSE','KF_RMSE_at_DVL','Coverage_3Sigma'});
+                {'State','KF_RMSE','GPS_RMSE','DVL_RMSE','KF_RMSE_at_DVL','Coverage_3Sigma'});
         
-            disp(result)
+            disp(kf_result)
         
         end
+        function ls_result = metrics_ls(obj)
+            %%%%%%%%%%%%%% LS RMSE %%%%%%%%%%%%%%%%%%%%%%%%
+            ls_rmse = sqrt(mean(obj.error_ls.^2,2));
+            kf_rmse = obj.metrics_kalman.KF_RMSE;
+            state = ["N";"E";"D";"vN";"vE";"vD"];
+            ls_result = table(state,...
+                                ls_rmse,...
+                                kf_rmse,...
+                                'VariableNames',{'State','LS_RMSE','KF_RMSE'});
+            disp(ls_result)
+        end
+
 
     end
 

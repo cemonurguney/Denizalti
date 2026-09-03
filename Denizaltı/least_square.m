@@ -1,7 +1,22 @@
 classdef least_square < handle
+    %Least Squares ve Kalman Filter yöntemleri aynı sensör verileri
+    %kullanılarak karşılaştırılmıştır. LS yönteminde sonlu bir zaman
+    %penceresi içerisindeki GPS ve DVL ölçümleri, sistem modeli ve IMU
+    %verileri kullanılarak durum kestirimi gerçekleştirilmiştir. Kalman
+    %Filter ise ölçüm ve proses belirsizliklerini kovaryans matrisleri
+    %üzerinden dikkate alarak ardışık kestirim yapmaktadır. Elde edilen
+    %sonuçlarda LS yöntemi konum durumlarında yaklaşık 0.82–2.15 m, hız
+    %durumlarında ise 0.09–0.23 m/s RMSE üretirken, Kalman Filter aynı
+    %koşullarda konum için yaklaşık 0.13–0.44 m ve hız için 0.027–0.077 m/s
+    %RMSE değerlerine ulaşmıştır. Bu sonuçlar, Kalman Filter'ın sensör
+    %gürültülerini ve model belirsizliğini istatistiksel olarak hesaba
+    %katması nedeniyle LS yöntemine göre daha başarılı kestirim sağladığını
+    %göstermektedir. Bununla birlikte LS yöntemi daha basit bir yapıyla
+    %durum kestirimi gerçekleştirebilmiş ve Kalman Filter için
+    %karşılaştırmalı bir referans yöntem olarak kullanılmıştır.
     properties
         x_hat
-        buffer_imu = zeros(500,3);
+        buffer_imu = zeros(5000,3);
         imu_count=0;
         buffer_position
         buffer_position_step
@@ -25,7 +40,7 @@ classdef least_square < handle
         end
         function add_imu(obj,a_imu)
             obj.imu_count = obj.imu_count + 1 ;
-            if obj.imu_count <= 500
+            if obj.imu_count <= 5000
                 obj.buffer_imu(obj.imu_count,:) = a_imu';
             else
                 obj.buffer_imu(1:end-1, :) = obj.buffer_imu(2:end, :);
@@ -62,8 +77,8 @@ classdef least_square < handle
         
             %%%%% Window start %%%%%
         
-            if obj.imu_count > 500
-                start_step = obj.imu_count - 500;
+            if obj.imu_count > 5000
+                start_step = obj.imu_count - 5000;
             else
                 start_step = 0;
             end
@@ -141,7 +156,7 @@ classdef least_square < handle
         
             %%%%% IMU buffer boyunca ilerle %%%%%
         
-            N_imu = min(obj.imu_count,500);
+            N_imu = min(obj.imu_count,5000);
         
             for i = 1:N_imu
         

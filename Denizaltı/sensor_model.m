@@ -72,12 +72,22 @@ classdef sensor_model < handle
             a_imu = obj.imu_measurement;
         end
         function z_position = position_measure(obj,sub,dt,Hz)
+
+            obj.t_position = obj.t_position + 1;
+        
             step_period = round(1/(Hz*dt));
-            if mod(obj.t_velocity,step_period) == 0 
-                z_position = sub.state(1:3) + sqrt(diag(obj.R_position)).*randn(3,1);
+        
+            if mod(obj.t_position,step_period) == 0
+        
+                z_position = sub.state(1:3) ...
+                    + sqrt(diag(obj.R_position)).*randn(3,1);
+        
             else
+        
                 z_position = NaN(3,1);
+        
             end
+        
         end
         function z_velocity = velocity_measure(obj,sub,dt,Hz)
             obj.t_velocity = obj.t_velocity + 1;
